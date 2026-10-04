@@ -1,26 +1,65 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Design tokens. Brand colours are placeholders until the brand is final:
+ * change the hex values here and the whole app follows.
+ * Solid colours only. No gradients.
+ */
+@theme {
+  --color-ink: #0b1320;
+  --color-ink-muted: #4b5565;
+  --color-ink-subtle: #6b7280;
+  --color-line: #e3e6eb;
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+
+  --color-brand: #0b7a4b;
+  --color-brand-strong: #08603b;
+  --color-brand-soft: #e6f3ec;
+
+  --color-accent: #c67c12;
+  --color-accent-strong: #a0640e;
+  --color-accent-soft: #fbf1e1;
+
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+
+  /* System fonts: nothing to download on slow connections. */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif;
+
+  --radius-card: 0.875rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* 16px minimum stops mobile browsers zooming into form fields. */
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
