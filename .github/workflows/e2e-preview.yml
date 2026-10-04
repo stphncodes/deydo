@@ -36,7 +36,7 @@ jobs:
         if: steps.bypass.outputs.ready == 'true'
         with:
           ref: ${{ github.event.deployment.sha }}
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         if: steps.bypass.outputs.ready == 'true'
         with:
           node-version-file: .nvmrc
@@ -47,7 +47,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - if: steps.bypass.outputs.ready == 'true'
         run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure() && steps.bypass.outputs.ready == 'true'
         with:
           name: playwright-report-preview
