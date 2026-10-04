@@ -1,6 +1,6 @@
 # Runbook: auth setup on the hosted Supabase project
 
-Local auth is configured in `supabase/config.toml`. The hosted project is configured once in the Supabase dashboard (Authentication section), because `supabase db push` does not change auth settings. Redo these steps if the project is ever recreated.
+Sign-in is email only, with a 6-digit code (ADR-015). Local auth is configured in `supabase/config.toml`. The hosted project is configured in the Supabase dashboard (Authentication section), because `supabase db push` does not change auth settings. Redo these steps if the project is ever recreated.
 
 ## 1. Custom Access Token hook (staff roles)
 
@@ -11,34 +11,40 @@ Authentication > Hooks > Customize Access Token (JWT) Claims:
 
 Check: sign in as an admin and open `/admin/providers`. Non-admins get a 404.
 
-## 2. Send SMS hook (phone sign-in)
+## 2. Email sign-in code
 
-1. Generate a secret in the dashboard (Authentication > Hooks > Send SMS, type HTTPS). It looks like `v1,whsec_...`.
-2. URL: `https://<production domain>/api/auth/hooks/send-sms`
-3. In Vercel, set for Production and Preview:
-   - `SEND_SMS_HOOK_SECRET` = the same secret (sensitive)
-   - `SMS_PROVIDER` = `disabled` until an SMS vendor is chosen (ADR-008)
-4. Authentication > Providers > Phone: enable phone sign-in. No built-in SMS provider is needed; the hook sends every SMS.
+Authentication > Email Templates. For both "Magic Link" and "Confirm signup":
 
-While `SMS_PROVIDER=disabled`, phone sign-in fails politely and people use email. Choosing a vendor means adding an adapter in `services/sms` and an ADR.
+- Subject: `Your DeyDo sign-in code`
+- Body: the contents of `supabase/templates/sign-in-code.html` (it shows `{{ .Token }}`, a 6-digit code, instead of a link)
 
-## 3. Email sign-in code
+Authentication > Providers > Email: email provider on, "Confirm email" on, OTP expiry 600 seconds, OTP length 6.
 
-Authentication > Email Templates. For both "Magic Link" and "Confirm signup", use the subject and body from `supabase/templates/sign-in-code.html` (it shows `{{ .Token }}`, a 6-digit code, instead of a link).
+## 3. Phone
 
-Authentication > Providers > Email: set the OTP expiry to 600 seconds and the OTP length to 6.
-
-**Before launch:** Supabase's built-in email sender allows only a few emails per hour. Set up custom SMTP (Authentication > SMTP Settings) with a transactional email provider. This is an open decision.
+Authentication > Providers > Phone: **off**. There is no SMS hook.
 
 ## 4. URLs
 
 Authentication > URL Configuration:
 
 - Site URL: the production URL
-- Redirect URLs: the production URL and `https://*-<vercel team>.vercel.app/**` for previews
+- Redirect URLs: the production URL and the preview pattern `https://*-<vercel team>.vercel.app/**`
+
+## 5. Email delivery (before launch)
+
+Supabase's built-in sender allows only a few emails per hour and is not meant for production. Set up custom SMTP (Authentication > SMTP Settings) with a transactional email provider, then raise the email rate limit (Authentication > Rate Limits). Until then, sign-in works for a handful of people per hour.
+
+## 6. First admin
+
+After you sign in once, grant yourself the admin role (there is no UI for granting roles until Phase 9):
+
+```bash
+npx supabase db query --linked "insert into public.user_roles (user_id, role) select id, 'admin' from auth.users where email = 'you@example.com' on conflict do nothing"
+```
+
+Sign out and back in so your token picks up the role.
 
 ## Never on the hosted project
 
-- `[auth.sms.test_otp]` fixed codes (local only)
-- The placeholder Twilio values in `config.toml` (local only)
-- `supabase/seed/dev-fixtures.sql` (ADR-014)
+- `supabase/seed/dev-fixtures.sql` (known passwords, including an admin; ADR-014)

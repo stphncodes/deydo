@@ -49,7 +49,7 @@ jobs:
       - run: npm ci
 
       - name: Start local Supabase (migrations and seed run on start)
-        run: npx supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor
+        run: npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
 
       - name: Schema rebuilds from scratch
         run: npx supabase db reset

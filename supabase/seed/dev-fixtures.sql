@@ -146,3 +146,10 @@ begin
   where status = 'approved' and id::text like '00000000-0000-4000-a000-0000000002%';
 end;
 $$;
+
+-- ADR-015: provider contact numbers live in profile_contacts, not auth.users.
+insert into public.profile_contacts (profile_id, phone)
+select id, '23480000002' || right(id::text, 2)
+from public.provider_profiles
+where id::text like '00000000-0000-4000-a000-0000000002%'
+on conflict (profile_id) do nothing;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { maskEmail, maskPhone, normalizeNigerianPhone } from '@/features/auth/phone'
+import { formatNigerianPhone, maskEmail, normalizeNigerianPhone } from '@/features/auth/phone'
 import { PhoneSchema } from '@/features/auth/schemas'
 
 describe('normalizeNigerianPhone', () => {
@@ -46,9 +46,9 @@ describe('PhoneSchema', () => {
   })
 })
 
-describe('masking', () => {
-  it('masks phones for display', () => {
-    expect(maskPhone('2348031234567')).toBe('0803 *** 4567')
+describe('display', () => {
+  it('formats stored numbers the way Nigerians write them', () => {
+    expect(formatNigerianPhone('2348031234567')).toBe('0803 123 4567')
   })
 
   it('masks emails for display', () => {

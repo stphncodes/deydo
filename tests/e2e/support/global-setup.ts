@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 
 import { createClient } from '@supabase/supabase-js'
 
-// Phones reserved for E2E sign-ups (fixed OTPs in supabase/config.toml).
-export const E2E_PHONES = ['2348000000900', '2348000000901', '2348000000902', '2348000000903']
+// Accounts created by the E2E journeys: e2e-<role>@deydo.test
+const E2E_EMAIL = /^e2e-[a-z0-9-]+@deydo\.test$/
 
 function readLocalEnv(): Record<string, string> {
   try {
@@ -20,7 +20,7 @@ function readLocalEnv(): Record<string, string> {
 }
 
 /**
- * Deletes the E2E users so sign-up journeys start fresh. Local stack only:
+ * Removes the E2E accounts so sign-up journeys start fresh. Local stack only:
  * it never touches a hosted project (ADR-014).
  */
 export default async function globalSetup() {
@@ -37,17 +37,16 @@ export default async function globalSetup() {
   if (error) throw error
 
   for (const user of data.users) {
-    if (!user.phone || !E2E_PHONES.includes(user.phone)) continue
+    if (!user.email || !E2E_EMAIL.test(user.email)) continue
 
     const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
     if (!deleteError) continue
 
     // Approved providers have append-only verification history, so they
-    // cannot be deleted. Retire them instead: move them to a random unused
-    // number so the test number is free for a fresh sign-up.
-    const retiredPhone = `23470${Math.floor(10_000_000 + Math.random() * 89_999_999)}`
+    // cannot be deleted. Retire them instead: move them to another address so
+    // the E2E address is free for a fresh sign-up.
     const { error: updateError } = await admin.auth.admin.updateUserById(user.id, {
-      phone: retiredPhone,
+      email: `retired-${crypto.randomUUID()}@deydo.test`,
     })
     if (updateError) throw updateError
   }

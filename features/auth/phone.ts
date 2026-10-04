@@ -1,5 +1,6 @@
-// Nigerian mobile numbers, stored the way Supabase Auth stores phones:
-// country code without the plus, for example 2348031234567.
+// Nigerian mobile numbers in the format Supabase uses for phones: country
+// code without the plus, for example 2348031234567. Used for the contact
+// number providers give (ADR-015), not for sign-in.
 
 const NATIONAL = /^0([789][01]\d{8})$/ // 08031234567
 const BARE = /^([789][01]\d{8})$/ // 8031234567
@@ -12,10 +13,10 @@ export function normalizeNigerianPhone(input: string): string | null {
   return match?.[1] ? `234${match[1]}` : null
 }
 
-/** 2348031234567 to "0803 *** 4567", for showing where a code was sent. */
-export function maskPhone(phone: string): string {
+/** 2348031234567 to "0803 123 4567", for showing a number to its owner or staff. */
+export function formatNigerianPhone(phone: string): string {
   const national = phone.startsWith('234') ? `0${phone.slice(3)}` : phone
-  return `${national.slice(0, 4)} *** ${national.slice(-4)}`
+  return `${national.slice(0, 4)} ${national.slice(4, 7)} ${national.slice(7)}`
 }
 
 /** chidi@example.com to "ch***@example.com". */

@@ -1,6 +1,6 @@
 # ADR-008: Phone OTP as primary auth via a Send SMS hook
 
-- Status: Proposed (pending the SMS delivery and cost spike)
+- Status: Superseded by [ADR-015](015-email-only-auth.md) (email-only sign-in)
 - Date: 2026-10-04
 
 ## Context

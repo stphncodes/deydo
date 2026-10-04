@@ -8,13 +8,14 @@ import { type ActionError, toActionError } from '@/lib/errors'
 import { logger } from '@/lib/logger'
 import { createClient } from '@/lib/supabase/server'
 
-import { maskEmail, maskPhone } from '../phone'
+import { maskEmail } from '../phone'
 import { RequestOtpSchema, VerifyOtpSchema } from '../schemas'
+
+// Email-only sign-in with a 6-digit code (ADR-015).
 
 export type SignInState = {
   step: 'request' | 'verify'
-  channel: 'phone' | 'email'
-  destination?: string
+  email?: string
   masked?: string
   next: string
   error?: ActionError
@@ -29,50 +30,27 @@ export async function requestOtpAction(
   formData: FormData,
 ): Promise<SignInState> {
   const parsed = RequestOtpSchema.safeParse(Object.fromEntries(formData))
-  const channel = formData.get('channel') === 'email' ? 'email' : 'phone'
   if (!parsed.success) {
-    return { ...prev, step: 'request', channel, error: toActionError(parsed.error).error }
+    return { ...prev, step: 'request', error: toActionError(parsed.error).error }
   }
 
   const supabase = await createClient()
-  const input = parsed.data
-  const { error } =
-    input.channel === 'phone'
-      ? await supabase.auth.signInWithOtp({
-          phone: input.phone,
-          options: { shouldCreateUser: true },
-        })
-      : await supabase.auth.signInWithOtp({
-          email: input.email,
-          options: { shouldCreateUser: true },
-        })
+  const { email } = parsed.data
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true },
+  })
 
   if (error) {
-    logger.warn('auth.request_otp_failed', {
-      channel: input.channel,
-      status: error.status,
-      code: error.code,
-    })
+    logger.warn('auth.request_otp_failed', { status: error.status, code: error.code })
     const message =
-      error.status === 429 ||
-      error.code === 'over_sms_send_rate_limit' ||
-      error.code === 'over_email_send_rate_limit'
+      error.status === 429 || error.code === 'over_email_send_rate_limit'
         ? 'Too many codes requested. Please wait a minute and try again.'
-        : input.channel === 'phone'
-          ? 'We could not send a text right now. Please try again, or use your email instead.'
-          : 'We could not send the email right now. Please try again in a moment.'
-    return { ...prev, step: 'request', channel: input.channel, error: authError(message) }
+        : 'We could not send the email right now. Please try again in a moment.'
+    return { ...prev, step: 'request', error: authError(message) }
   }
 
-  const destination = input.channel === 'phone' ? input.phone : input.email
-  return {
-    ...prev,
-    step: 'verify',
-    channel: input.channel,
-    destination,
-    masked: input.channel === 'phone' ? maskPhone(destination) : maskEmail(destination),
-    error: undefined,
-  }
+  return { ...prev, step: 'verify', email, masked: maskEmail(email), error: undefined }
 }
 
 export async function verifyOtpAction(prev: SignInState, formData: FormData): Promise<SignInState> {
@@ -80,14 +58,11 @@ export async function verifyOtpAction(prev: SignInState, formData: FormData): Pr
   if (!parsed.success) return { ...prev, error: toActionError(parsed.error).error }
 
   const supabase = await createClient()
-  const input = parsed.data
-  const { data, error } =
-    input.channel === 'phone'
-      ? await supabase.auth.verifyOtp({ phone: input.phone, token: input.code, type: 'sms' })
-      : await supabase.auth.verifyOtp({ email: input.email, token: input.code, type: 'email' })
+  const { email, code } = parsed.data
+  const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
 
   if (error || !data.user) {
-    logger.info('auth.verify_otp_failed', { channel: input.channel, code: error?.code })
+    logger.info('auth.verify_otp_failed', { code: error?.code })
     return {
       ...prev,
       error: authError('That code is wrong or has expired. Check it, or ask for a new one.'),

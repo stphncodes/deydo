@@ -32,10 +32,23 @@ describe('public env', () => {
     )
   })
 
-  it('requires Sentry and analytics in production', () => {
+  it('requires Sentry in production', () => {
     expect(() =>
       parseEnv(PublicEnvSchema, { ...validPublic, NEXT_PUBLIC_APP_ENV: 'production' }, 'public'),
-    ).toThrow(/NEXT_PUBLIC_SENTRY_DSN: Required in production[\s\S]*NEXT_PUBLIC_POSTHOG_KEY/)
+    ).toThrow(/NEXT_PUBLIC_SENTRY_DSN: Required in production/)
+  })
+
+  it('allows production without analytics until PostHog is set up', () => {
+    const env = parseEnv(
+      PublicEnvSchema,
+      {
+        ...validPublic,
+        NEXT_PUBLIC_APP_ENV: 'production',
+        NEXT_PUBLIC_SENTRY_DSN: 'https://abc@o1.ingest.sentry.io/1',
+      },
+      'public',
+    )
+    expect(env.NEXT_PUBLIC_POSTHOG_KEY).toBeUndefined()
   })
 })
 
@@ -52,7 +65,6 @@ describe('server env', () => {
     )
     expect(env).toEqual({
       SUPABASE_SECRET_KEY: 'sb_secret_0123456789abcdef',
-      SMS_PROVIDER: 'disabled',
     })
   })
 })

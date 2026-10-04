@@ -14,7 +14,7 @@ import { submitProviderApplicationAction } from '../server/actions'
 
 type Props = {
   areas: AreaOption[]
-  initial?: { headline: string; bio: string; baseLocationId: string }
+  initial?: { headline: string; bio: string; baseLocationId: string; phone: string }
   submitLabel: string
 }
 
@@ -64,6 +64,24 @@ export function ProviderApplicationForm({ areas, initial, submitLabel }: Props) 
               </option>
             ))}
           </Select>
+        )}
+      </Field>
+      <Field
+        label="Your phone number"
+        hint="Our team will call you to confirm your details. Customers only see it after they hire you."
+        errors={fieldErrors(state, 'phone')}
+      >
+        {(props) => (
+          <Input
+            {...props}
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="0803 123 4567"
+            defaultValue={initial?.phone}
+            required
+          />
         )}
       </Field>
       <SubmitButton pendingLabel="Sending...">{submitLabel}</SubmitButton>

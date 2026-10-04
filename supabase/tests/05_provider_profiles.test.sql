@@ -2,12 +2,16 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(25);
 
--- P: applicant with a verified phone. U: applicant without. Q: other user.
+-- P: applicant with a contact number. U: applicant without. Q: other user.
 insert into auth.users (id, email, phone, phone_confirmed_at) values
   ('11111111-1111-4111-8111-111111111111', 'p@test.local', '2348011111111', now()),
   ('22222222-2222-4222-8222-222222222222', 'u@test.local', '2348022222222', null),
   ('33333333-3333-4333-8333-333333333333', 'q@test.local', null, null),
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'admin@test.local', null, null);
+
+-- Contact number on file for P only (ADR-015).
+insert into public.profile_contacts (profile_id, phone) values
+  ('11111111-1111-4111-8111-111111111111', '2348011111111');
 
 create temp table area as
   select a.id from public.locations a join public.locations c on c.id = a.parent_id
@@ -72,7 +76,7 @@ select throws_ok(
 select throws_ok(
   $$select public.review_provider('22222222-2222-4222-8222-222222222222', 'approved', 1::smallint, null,
       '[{"check_type": "in_person", "result": "passed"}]')$$,
-  '23514', 'The provider must verify their phone before approval', 'approval needs a verified phone');
+  '23514', 'The provider must add a phone number before approval', 'approval needs a phone number on file');
 select throws_ok(
   $$select public.review_provider('22222222-2222-4222-8222-222222222222', 'rejected')$$,
   '22023', 'A reason is required to reject or suspend', 'rejection needs a reason');

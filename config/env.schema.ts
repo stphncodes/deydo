@@ -20,6 +20,8 @@ export const PublicEnvSchema = z
     ),
   })
   .superRefine((env, ctx) => {
+    // Sentry is required in production. Analytics is optional until a
+    // PostHog project exists; without a key, funnel events are not sent.
     if (env.NEXT_PUBLIC_APP_ENV !== 'production') return
     if (!env.NEXT_PUBLIC_SENTRY_DSN) {
       ctx.addIssue({
@@ -28,27 +30,10 @@ export const PublicEnvSchema = z
         message: 'Required in production',
       })
     }
-    if (!env.NEXT_PUBLIC_POSTHOG_KEY) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['NEXT_PUBLIC_POSTHOG_KEY'],
-        message: 'Required in production',
-      })
-    }
   })
-
-export const SMS_PROVIDERS = ['console', 'disabled'] as const
 
 export const ServerEnvSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(20),
-  // Supabase Send SMS hook secret, in Standard Webhooks form: v1,whsec_<base64>
-  SEND_SMS_HOOK_SECRET: optional(z.string().regex(/^v1,whsec_[A-Za-z0-9+/=]+$/)),
-  // `console` prints messages in the server log (local development only).
-  // Real vendors are added behind services/sms with an ADR (ADR-008).
-  SMS_PROVIDER: z.preprocess(
-    (value) => (value === '' ? undefined : value),
-    z.enum(SMS_PROVIDERS).default('disabled'),
-  ),
   // Added with the cron routes in later phases.
   CRON_SECRET: optional(z.string().min(32)),
 })

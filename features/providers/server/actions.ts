@@ -42,6 +42,11 @@ export async function submitProviderApplicationAction(
       throw new ConflictError('Your provider account is suspended. Please contact support.')
     }
 
+    const { error: contactError } = await supabase
+      .from('profile_contacts')
+      .upsert({ profile_id: user.id, phone: input.phone })
+    if (contactError) throw mapDbError(contactError)
+
     await ensureHandle(user.id, profile.full_name ?? '', profile.handle)
     revalidatePath('/provider/apply')
     revalidatePath('/dashboard')

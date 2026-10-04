@@ -53,12 +53,24 @@ describe('profile schemas (match the database constraints)', () => {
 
 describe('provider schemas', () => {
   it('requires a headline of 5 to 120 characters', () => {
+    const phone = '0803 123 4567'
     expect(
-      ProviderApplicationSchema.safeParse({ headline: 'AC', baseLocationId: uuid }).success,
+      ProviderApplicationSchema.safeParse({ headline: 'AC', baseLocationId: uuid, phone }).success,
     ).toBe(false)
-    expect(
-      ProviderApplicationSchema.parse({ headline: 'AC repair', bio: '', baseLocationId: uuid }).bio,
-    ).toBeUndefined()
+    const parsed = ProviderApplicationSchema.parse({
+      headline: 'AC repair',
+      bio: '',
+      baseLocationId: uuid,
+      phone,
+    })
+    expect(parsed.bio).toBeUndefined()
+    expect(parsed.phone).toBe('2348031234567')
+  })
+
+  it('requires a valid contact phone', () => {
+    const base = { headline: 'AC repair', baseLocationId: uuid }
+    expect(ProviderApplicationSchema.safeParse(base).success).toBe(false)
+    expect(ProviderApplicationSchema.safeParse({ ...base, phone: '12345' }).success).toBe(false)
   })
 
   it('needs a reason to reject or suspend', () => {

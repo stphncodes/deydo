@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { PhoneSchema } from '@/features/auth/schemas'
+
 // Mirrors the CHECK constraints on public.provider_profiles.
 
 export const ProviderApplicationSchema = z.object({
@@ -13,6 +15,8 @@ export const ProviderApplicationSchema = z.object({
     z.string().trim().max(2000, 'Keep it under 2,000 characters').optional(),
   ),
   baseLocationId: z.uuid('Choose the area you work from'),
+  // Private: only the provider and DeyDo staff can see it (profile_contacts).
+  phone: PhoneSchema,
 })
 
 export const REVIEW_DECISIONS = ['approved', 'rejected', 'suspended'] as const

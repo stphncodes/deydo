@@ -19,3 +19,4 @@ Never edit an accepted ADR to change its decision. Write a new ADR that supersed
 | [011](011-npm-package-manager.md)               | npm instead of pnpm                                                  | Accepted                                     |
 | [012](012-animation-libraries.md)               | Animation libraries and the JS budget                                | Accepted                                     |
 | [013](013-reference-data-seeding.md)            | How reference data reaches each environment                          | Accepted                                     |
+| [015](015-email-only-auth.md)                   | Email-only sign-in                                                   | Accepted                                     |

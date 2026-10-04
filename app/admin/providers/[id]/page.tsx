@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation'
 
 import { Card } from '@/components/ui/card'
 import { ReviewProviderForm } from '@/features/admin/components/review-provider-form'
-import { getApplicantPhone, getProviderForReview } from '@/features/admin/server/providers'
+import { getProviderForReview } from '@/features/admin/server/providers'
+import { formatNigerianPhone } from '@/features/auth/phone'
 import { requireAdmin } from '@/lib/auth/session'
 
 export const metadata: Metadata = { title: 'Review provider' }
@@ -17,7 +18,8 @@ export default async function AdminProviderPage({ params }: PageProps<'/admin/pr
   const result = await getProviderForReview(id)
   if (!result) notFound()
   const { provider, records } = result
-  const phone = await getApplicantPhone(id)
+  // Readable by staff only (profile_contacts RLS). Used to call the applicant.
+  const phone = provider.profile?.contact?.phone ?? null
 
   return (
     <div className="space-y-6">
@@ -40,13 +42,12 @@ export default async function AdminProviderPage({ params }: PageProps<'/admin/pr
         <p>
           <span className="font-medium">Phone:</span>{' '}
           {phone ? (
-            <a href={`tel:${phone}`} className="text-brand">
-              {phone}
+            <a href={`tel:+${phone}`} className="text-brand">
+              {formatNigerianPhone(phone)}
             </a>
           ) : (
             'None'
-          )}{' '}
-          ({provider.profile?.phone_verified ? 'verified' : 'not verified'})
+          )}
         </p>
         {provider.status_reason ? (
           <p>
