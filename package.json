@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -19,13 +19,13 @@
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local --schema public > types/database.ts && prettier --write types/database.ts --ignore-path /dev/null --log-level warn",
     "db:test": "supabase test db",
-    "check": "npm run lint && npm run typecheck && npm run check:style && npm test && npm run db:test"
+    "check": "npm run lint && npm run typecheck && npm run check:style && npm test && npm run db:test",
+    "env:local": "node scripts/local-env.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^11.4.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
-    "motion": "^14.0.0",
     "next": "16.3.8",
     "posthog-js": "^1.435.8",
     "posthog-node": "^5.55.0",
@@ -51,7 +51,6 @@
     "supabase": "^2.119.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.3"
   },
   "engines": {
