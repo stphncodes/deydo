@@ -8,7 +8,8 @@ import { expect, test } from '@playwright/test'
 // the ceiling leaves about 10 KB for our own client code. Scripts loaded
 // after the load event (Sentry and analytics on idle) are excluded.
 const BUDGET_KB = 160
-const CORE_PAGES = ['/', '/dashboard'] as const
+// Signed-in pages are measured after sign-in in auth.spec.ts.
+const CORE_PAGES = ['/', '/sign-in'] as const
 
 for (const path of CORE_PAGES) {
   test(`initial JS on ${path} stays within ${BUDGET_KB} KB Brotli`, async ({ page }) => {

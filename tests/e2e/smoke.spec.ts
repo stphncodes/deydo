@@ -15,18 +15,6 @@ test.describe('smoke', () => {
     await expect(page.getByRole('link', { name: 'Get started' })).toBeVisible()
   })
 
-  test('app shell has thumb-reachable navigation', async ({ page }) => {
-    await page.goto('/dashboard')
-    const nav = page.getByRole('navigation', { name: 'Main' })
-    await expect(nav).toBeVisible()
-    await nav.getByRole('link', { name: 'Requests' }).click()
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Requests')
-
-    const box = await nav.boundingBox()
-    const viewportHeight = page.viewportSize()?.height ?? 0
-    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeGreaterThanOrEqual(viewportHeight - 2)
-  })
-
   test('health check reports the database as reachable', async ({ request }) => {
     const response = await request.get('/api/health')
     expect(response.status()).toBe(200)

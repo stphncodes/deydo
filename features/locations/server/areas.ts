@@ -9,7 +9,7 @@ export type AreaOption = { id: string; name: string; city: string }
 export async function listActiveAreas(): Promise<AreaOption[]> {
   const { data, error } = await createPublicClient()
     .from('locations')
-    .select('id, name, parent:locations!locations_parent_id_fkey(name)')
+    .select('id, name, parent:parent_id(name)')
     .eq('type', 'area')
     .eq('is_active', true)
     .order('name')
