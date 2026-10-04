@@ -1,9 +1,9 @@
 -- =============================================================================
--- DEVELOPMENT FIXTURES. LOCAL AND STAGING ONLY. NEVER LOAD IN PRODUCTION.
+-- DEVELOPMENT FIXTURES. LOCAL ONLY. NEVER LOAD INTO A HOSTED PROJECT.
 -- =============================================================================
--- Loaded locally by `npm run db:reset` through supabase/config.toml. The deploy
--- workflow applies it to staging (for preview E2E runs) and never to
--- production. Idempotent: it does nothing if the fixtures already exist.
+-- Loaded locally by `npm run db:reset` through supabase/config.toml. While one
+-- hosted project serves staging and production (ADR-014), these accounts with
+-- a known password must never reach it. Idempotent.
 --
 -- Every fixture user signs in with the password: password123
 -- Phase 1 fixtures: 2 customers and 1 admin. Providers and requests are added

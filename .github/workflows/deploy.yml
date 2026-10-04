@@ -1,8 +1,11 @@
 name: Deploy
 
-# On merge to main: migrate staging, migrate production, then deploy the app
-# to Vercel production. Vercel's own Git deploy for main is turned off in
-# vercel.json so the app never goes live before its migrations.
+# On merge to main: apply migrations, then deploy the app to Vercel
+# production. Vercel's own Git deploy for main is turned off in vercel.json so
+# the app never goes live before its migrations.
+#
+# ADR-014: one Supabase project serves staging and production for now, so
+# there is a single migrate step and dev fixtures are never applied.
 on:
   push:
     branches: [main]
@@ -15,46 +18,28 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
 jobs:
-  migrate-staging:
-    name: Migrate staging
-    runs-on: ubuntu-latest
-    environment: staging
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v5
-      - uses: supabase/setup-cli@v1
-        with:
-          version: 2.119.0
-      - run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
-      - run: supabase db push --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
-      - name: Apply wedge city and staging fixtures (ADR-013)
-        run: |
-          psql "${{ secrets.SUPABASE_DB_URL }}" -v ON_ERROR_STOP=1 -q -f supabase/seed/wedge-city.sql
-          psql "${{ secrets.SUPABASE_DB_URL }}" -v ON_ERROR_STOP=1 -q -f supabase/seed/dev-fixtures.sql
-
-  migrate-production:
-    name: Migrate production
-    needs: migrate-staging
+  migrate:
+    name: Migrate database
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 15
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v5
       - uses: supabase/setup-cli@v1
         with:
           version: 2.119.0
-      - run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
-      - run: supabase db push --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
-      - name: Apply wedge city (never dev fixtures in production)
+      - run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+      - run: supabase db push --include-all
+      - name: Apply wedge city (never dev fixtures, see ADR-014)
         run: psql "${{ secrets.SUPABASE_DB_URL }}" -v ON_ERROR_STOP=1 -q -f supabase/seed/wedge-city.sql
 
-  deploy-production:
+  deploy:
     name: Deploy to Vercel production
-    needs: migrate-production
+    needs: migrate
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 20
@@ -66,8 +51,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm install --global vercel@62
-      - run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
-      - run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
-      - run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+      # Build on Vercel (not --prebuilt) so sensitive env vars, which cannot be
+      # pulled to CI, are available to the build.
+      - run: npx --yes vercel@62 deploy --prod --yes --token="${{ secrets.VERCEL_TOKEN }}"
