@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, types, unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Placeholder values so env validation passes during typegen and tests.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder_value
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run check:style
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
+
+  database-and-e2e:
+    name: Database tests, build, smoke E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Start local Supabase (migrations and seed run on start)
+        run: npx supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor
+
+      - name: Schema rebuilds from scratch
+        run: npx supabase db reset
+
+      - name: pgTAP (RLS and SQL functions)
+        run: npm run db:test
+
+      - name: Generated types are committed and current
+        run: |
+          npm run db:types
+          git diff --exit-code types/database.ts || {
+            echo "::error::types/database.ts is stale. Run npm run db:types and commit it."
+            exit 1
+          }
+
+      - name: Wedge city seed is idempotent
+        run: |
+          DB_URL=$(npx supabase status -o json | jq -r '.DB_URL // .db_url')
+          count() { psql "$DB_URL" -tAc "select count(*), count(*) filter (where is_active) from public.locations"; }
+          before=$(count)
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f supabase/seed/wedge-city.sql
+          after=$(count)
+          test "$before" = "$after" || { echo "::error::wedge-city.sql changed data on re-run ($before -> $after)"; exit 1; }
+
+      - name: Write .env.local from the local stack
+        run: npm run env:local
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Smoke E2E and JS budget (mobile, slow 4G)
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
