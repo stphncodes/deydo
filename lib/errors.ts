@@ -117,3 +117,6 @@ export function toActionError(error: unknown): { error: ActionError; unexpected:
     unexpected: true,
   }
 }
+
+/** State returned by form Server Actions used with useActionState. */
+export type FormState = { ok?: boolean; message?: string; error?: ActionError }

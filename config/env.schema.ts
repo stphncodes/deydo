@@ -37,8 +37,18 @@ export const PublicEnvSchema = z
     }
   })
 
+export const SMS_PROVIDERS = ['console', 'disabled'] as const
+
 export const ServerEnvSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(20),
+  // Supabase Send SMS hook secret, in Standard Webhooks form: v1,whsec_<base64>
+  SEND_SMS_HOOK_SECRET: optional(z.string().regex(/^v1,whsec_[A-Za-z0-9+/=]+$/)),
+  // `console` prints messages in the server log (local development only).
+  // Real vendors are added behind services/sms with an ADR (ADR-008).
+  SMS_PROVIDER: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.enum(SMS_PROVIDERS).default('disabled'),
+  ),
   // Added with the cron routes in later phases.
   CRON_SECRET: optional(z.string().min(32)),
 })

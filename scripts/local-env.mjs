@@ -9,10 +9,16 @@ const status = JSON.parse(
 
 const pick = (...keys) => keys.map((key) => status[key]).find(Boolean)
 
+const hookSecret = readFileSync('supabase/config.toml', 'utf8').match(
+  /\[auth\.hook\.send_sms\][^[]*?secrets = "([^"]+)"/,
+)?.[1]
+
 const fromSupabase = {
   NEXT_PUBLIC_SUPABASE_URL: pick('API_URL', 'api_url'),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: pick('PUBLISHABLE_KEY', 'publishable_key', 'ANON_KEY'),
   SUPABASE_SECRET_KEY: pick('SECRET_KEY', 'secret_key', 'SERVICE_ROLE_KEY'),
+  SEND_SMS_HOOK_SECRET: hookSecret,
+  SMS_PROVIDER: 'console',
 }
 
 for (const [key, value] of Object.entries(fromSupabase)) {
