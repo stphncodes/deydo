@@ -1,0 +1,11 @@
+# Never upload local secrets or local-only state when deploying with the CLI.
+.env*
+!.env.example
+.next
+node_modules
+coverage
+playwright-report
+test-results
+blob-report
+supabase/.temp
+supabase/.branches
