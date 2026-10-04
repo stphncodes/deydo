@@ -58,7 +58,9 @@ insert into public.provider_profiles (id, headline, base_location_id)
 
 set local role anon;
 select set_config('request.jwt.claims', '{"role": "anon"}', true);
-select is((select count(*)::int from public.provider_profiles), 0, 'anon cannot see pending providers');
+select is((select count(*)::int from public.provider_profiles where id in (
+  '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222')), 0,
+  'anon cannot see pending providers');
 
 -- Admin review
 set local role authenticated;

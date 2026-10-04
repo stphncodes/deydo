@@ -38,9 +38,18 @@ export default async function globalSetup() {
   if (error) throw error
 
   for (const user of data.users) {
-    if (user.phone && E2E_PHONES.includes(user.phone)) {
-      const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
-      if (deleteError) throw deleteError
-    }
+    if (!user.phone || !E2E_PHONES.includes(user.phone)) continue
+
+    const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
+    if (!deleteError) continue
+
+    // Approved providers have append-only verification history, so they
+    // cannot be deleted. Retire them instead: move them to a random unused
+    // number so the test number is free for a fresh sign-up.
+    const retiredPhone = `23470${Math.floor(10_000_000 + Math.random() * 89_999_999)}`
+    const { error: updateError } = await admin.auth.admin.updateUserById(user.id, {
+      phone: retiredPhone,
+    })
+    if (updateError) throw updateError
   }
 }
