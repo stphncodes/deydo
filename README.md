@@ -20,7 +20,7 @@ npm run env:local      # writes .env.local from the local stack
 npm run dev            # http://localhost:3000
 ```
 
-Local Studio runs at http://127.0.0.1:54323. Fixture users (local and staging only) sign in with the password `password123`: `admin@deydo.test`, `chidi@deydo.test`, `amina@deydo.test`.
+Local Studio runs at http://127.0.0.1:54323. Fixture users (local only) sign in with the password `password123`: `admin@deydo.test`, `chidi@deydo.test`, `amina@deydo.test`.
 
 ## Everyday commands
 
@@ -54,4 +54,4 @@ Local Studio runs at http://127.0.0.1:54323. Fixture users (local and staging on
 | Preview     | Vercel preview per PR                                         | Staging Supabase project    |
 | Production  | Vercel production, deployed by `.github/workflows/deploy.yml` | Production Supabase project |
 
-Merging to `main` migrates staging, then production, then deploys. See [`docs/runbooks/migrations.md`](docs/runbooks/migrations.md).
+Merging to `main` applies migrations, then deploys. See [`docs/runbooks/migrations.md`](docs/runbooks/migrations.md).

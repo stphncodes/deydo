@@ -24,15 +24,14 @@ npm run db:types        # regenerate types/database.ts and commit it
 
 `.github/workflows/deploy.yml` runs on every merge to `main`:
 
-1. `supabase db push` to staging, then applies `supabase/seed/wedge-city.sql` and `supabase/seed/dev-fixtures.sql`.
-2. `supabase db push` to production, then applies `supabase/seed/wedge-city.sql` only.
-3. Builds and deploys the app to Vercel production.
+1. `supabase db push` to the hosted project, then applies `supabase/seed/wedge-city.sql`. Dev fixtures are never applied (ADR-014: one project serves staging and production for now).
+2. Deploys the app to Vercel production (built on Vercel).
 
-If step 1 or 2 fails, the app is not deployed and production keeps running the previous version.
+If step 1 fails, the app is not deployed and production keeps running the previous version.
 
 ### Required GitHub secrets
 
-Per GitHub environment (`staging` and `production`):
+In the `production` GitHub environment:
 
 | Secret                 | Where to find it                                              |
 | ---------------------- | ------------------------------------------------------------- |
@@ -40,7 +39,7 @@ Per GitHub environment (`staging` and `production`):
 | `SUPABASE_DB_PASSWORD` | Set when the project was created                              |
 | `SUPABASE_DB_URL`      | Supabase dashboard, Connect, session pooler connection string |
 
-Repository-wide: `SUPABASE_ACCESS_TOKEN`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_AUTOMATION_BYPASS_SECRET`.
+Also in `production`: `SUPABASE_ACCESS_TOKEN`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. Repository-wide: `VERCEL_AUTOMATION_BYPASS_SECRET` (only if preview protection is on).
 
 ## When a migration fails in CI
 

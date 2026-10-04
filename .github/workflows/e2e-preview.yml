@@ -20,18 +20,35 @@ jobs:
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       CI: true
     steps:
+      # Previews sit behind Vercel Deployment Protection (they use the shared
+      # production database, ADR-014). Without the bypass secret the tests
+      # would only see the Vercel login page.
+      - name: Check protection bypass secret
+        id: bypass
+        run: |
+          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo "::warning::VERCEL_AUTOMATION_BYPASS_SECRET is not set; skipping preview E2E."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v5
+        if: steps.bypass.outputs.ready == 'true'
         with:
           ref: ${{ github.event.deployment.sha }}
       - uses: actions/setup-node@v7
+        if: steps.bypass.outputs.ready == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - if: steps.bypass.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.bypass.outputs.ready == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.bypass.outputs.ready == 'true'
+        run: npm run test:e2e
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: failure() && steps.bypass.outputs.ready == 'true'
         with:
           name: playwright-report-preview
           path: playwright-report

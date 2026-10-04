@@ -4,7 +4,8 @@ import { defineConfig, devices } from '@playwright/test'
 // tests/e2e/support/network.ts). Against a deployed URL when
 // PLAYWRIGHT_BASE_URL is set (preview deploys in CI), otherwise against a
 // local production build.
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
+// Port 3100 so a running `next dev` on 3000 is never measured by mistake.
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3100'
 const useLocalServer = !process.env.PLAYWRIGHT_BASE_URL
 
 export default defineConfig({
@@ -30,7 +31,7 @@ export default defineConfig({
   ],
   webServer: useLocalServer
     ? {
-        command: 'npm run build && npm run start',
+        command: 'npm run build && npm run start -- -p 3100',
         url: `${baseURL}/api/health`,
         reuseExistingServer: !process.env.CI,
         timeout: 300_000,
