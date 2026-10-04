@@ -20,7 +20,13 @@ for (const path of CORE_PAGES) {
       ) as PerformanceNavigationTiming[]
       const loadEnd = navigation?.loadEventEnd || Number.POSITIVE_INFINITY
       return (performance.getEntriesByType('resource') as PerformanceResourceTiming[])
-        .filter((entry) => entry.initiatorType === 'script' && entry.startTime <= loadEnd)
+        .filter(
+          (entry) =>
+            entry.initiatorType === 'script' &&
+            entry.startTime <= loadEnd &&
+            // Our own scripts only: Vercel injects its toolbar into previews.
+            new URL(entry.name).origin === window.location.origin,
+        )
         .map((entry) => entry.name)
     })
 
