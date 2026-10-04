@@ -1,4 +1,20 @@
+import { readFileSync } from 'node:fs'
+
 import { defineConfig, devices } from '@playwright/test'
+
+// Journeys tagged @writes create users and need the fixed test OTPs, so they
+// run only against the local Supabase stack. Without Docker (.env.local
+// pointing at the hosted project) or against preview deploys they are skipped.
+function usesLocalSupabase(): boolean {
+  if (process.env.PLAYWRIGHT_BASE_URL) return false
+  try {
+    return /^NEXT_PUBLIC_SUPABASE_URL=http:\/\/(127\.0\.0\.1|localhost):54321$/m.test(
+      readFileSync('.env.local', 'utf8'),
+    )
+  } catch {
+    return false
+  }
+}
 
 // E2E runs on a mid-range Android profile with a slow network (see
 // tests/e2e/support/network.ts). Against a deployed URL when
@@ -11,9 +27,8 @@ const useLocalServer = !process.env.PLAYWRIGHT_BASE_URL
 export default defineConfig({
   testDir: './tests/e2e',
   globalSetup: './tests/e2e/support/global-setup.ts',
-  // Journeys that create data never run against the shared hosted database
-  // (ADR-014); preview runs set PLAYWRIGHT_BASE_URL.
-  grepInvert: process.env.PLAYWRIGHT_BASE_URL ? /@writes/ : undefined,
+  // Never create data in the shared hosted database (ADR-014).
+  grepInvert: usesLocalSupabase() ? undefined : /@writes/,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
