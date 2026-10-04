@@ -199,7 +199,8 @@ password_requirements = ""
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+# Local only: E2E sign-ins send several emails per run. Hosted keeps its own limit.
+email_sent = 100
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -268,31 +269,14 @@ content_path = "./supabase/templates/sign-in-code.html"
 # content_path = "./supabase/templates/password_changed_notification.html"
 
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = true
+# Email-only sign-in (ADR-015): no phone sign-up.
+enable_signup = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
 template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
-
-# Fixed OTPs for local development and E2E tests only (never on the hosted
-# project). 2348000000xxx numbers match supabase/seed/dev-fixtures.sql.
-[auth.sms.test_otp]
-2348000000001 = "123456"
-2348000000101 = "123456"
-2348000000102 = "123456"
-2348000000201 = "123456"
-2348000000202 = "123456"
-2348000000203 = "123456"
-2348000000204 = "123456"
-2348000000205 = "123456"
-2348000000206 = "123456"
-2348000000900 = "123456"
-2348000000901 = "123456"
-2348000000902 = "123456"
-2348000000903 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -311,23 +295,14 @@ max_frequency = "5s"
 enabled = true
 uri = "pg-functions://postgres/public/custom_access_token_hook"
 
-# SMS goes through our own route handler and services/sms adapter (ADR-008).
-# The secret is a LOCAL DEVELOPMENT value only; the hosted project uses its own
-# secret, set in the dashboard and in SEND_SMS_HOOK_SECRET on Vercel.
-[auth.hook.send_sms]
-enabled = true
-uri = "http://host.docker.internal:3000/api/auth/hooks/send-sms"
-secrets = "v1,whsec_ZGV5ZG8tbG9jYWwtZGV2LW9ubHktc2VuZC1zbXMtaG9vay1zZWNyZXQ="
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
-# LOCAL ONLY: the CLI turns phone login off unless a built-in provider is
-# enabled, even though the send_sms hook above delivers every SMS. These are
-# placeholders, never used to send anything. No real credentials here.
 [auth.sms.twilio]
-enabled = true
-account_sid = "AC00000000000000000000000000000000"
-message_service_sid = "MG00000000000000000000000000000000"
-auth_token = "placeholder-unused-because-send-sms-hook-is-enabled"
+enabled = false
+account_sid = ""
+message_service_sid = ""
+# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]

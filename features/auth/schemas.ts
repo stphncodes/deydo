@@ -23,26 +23,12 @@ export const EmailSchema = z
   .toLowerCase()
   .pipe(z.email('Enter a valid email address'))
 
-export const RequestOtpSchema = z.discriminatedUnion('channel', [
-  z.object({ channel: z.literal('phone'), phone: PhoneSchema }),
-  z.object({ channel: z.literal('email'), email: EmailSchema }),
-])
+export const RequestOtpSchema = z.object({ email: EmailSchema })
 
-export const VerifyOtpSchema = z.discriminatedUnion('channel', [
-  z.object({
-    channel: z.literal('phone'),
-    phone: PhoneSchema,
-    code: z
-      .string()
-      .trim()
-      .regex(/^\d{6}$/, 'Enter the 6-digit code'),
-  }),
-  z.object({
-    channel: z.literal('email'),
-    email: EmailSchema,
-    code: z
-      .string()
-      .trim()
-      .regex(/^\d{6}$/, 'Enter the 6-digit code'),
-  }),
-])
+export const VerifyOtpSchema = z.object({
+  email: EmailSchema,
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Enter the 6-digit code'),
+})

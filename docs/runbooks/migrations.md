@@ -26,7 +26,7 @@ When you are not running the local stack, nothing on your machine can apply a mi
 
 1. Write the migration file and its pgTAP tests. Do not run `supabase db push`.
 2. Push the branch and open a pull request. CI builds the database from scratch, runs pgTAP, and checks the generated types.
-3. If CI reports stale types, download the `database-types` artifact from the run (`gh run download <run-id> -n database-types -D types`) and commit it.
+3. If CI reports stale types, download the `database-types` artifact from the run and commit it: `gh run download <run-id> -n database-types -D /tmp/types && cp /tmp/types/database.ts types/`.
 4. Merge. The deploy workflow applies the migration to the hosted project.
 
 Applying a migration by hand from a feature branch puts unreviewed schema into production, and an applied migration can never be edited afterwards.

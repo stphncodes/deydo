@@ -15,12 +15,12 @@ Every provider is checked by a person before they can see requests. The console 
 | 2     | ID checked      | Government ID seen and matching their name and photo       |
 | 3     | Met in person   | You met them and saw their tools or real work              |
 
-Approval needs at least level 1, a verified phone on the account, and at least one passed check. In the wedge, aim for level 3 for every provider: it is our strongest early trust signal.
+Approval needs at least level 1, a phone number on file (the provider gives it in their application), and at least one passed check. In the wedge, aim for level 3 for every provider: it is our strongest early trust signal.
 
 ## Steps
 
 1. Open the applicant. Read the headline, about text and area.
-2. Call the number shown (tap to call). Confirm their name, what they do and where they work. Watch for answers that do not match the application.
+2. Call the number shown (tap to call). It was typed by the provider and is not verified until you reach them. Confirm their name, what they do and where they work. Watch for answers that do not match the application.
 3. If you can, see a government ID (in person or a clear video call) and their tools or past work.
 4. Tick every check that passed. Add internal notes (not shown to the provider).
 5. Choose the verification level that matches what you actually checked. Never round up.

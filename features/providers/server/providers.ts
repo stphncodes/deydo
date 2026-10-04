@@ -17,6 +17,18 @@ export async function getOwnProviderProfile(userId: string): Promise<ProviderPro
   return data
 }
 
+/** The user's own contact phone (234XXXXXXXXXX), or null. */
+export async function getOwnContactPhone(userId: string): Promise<string | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('profile_contacts')
+    .select('phone')
+    .eq('profile_id', userId)
+    .maybeSingle()
+  if (error) throw mapDbError(error)
+  return data?.phone ?? null
+}
+
 /** A unique handle like "musa_ade" or "musa_ade_42" for the shareable profile link. */
 export async function ensureHandle(
   userId: string,

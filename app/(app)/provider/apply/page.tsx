@@ -1,22 +1,28 @@
 import type { Metadata } from 'next'
 
 import { Card } from '@/components/ui/card'
+import { formatNigerianPhone } from '@/features/auth/phone'
 import { listActiveAreas } from '@/features/locations/server/areas'
 import { ProviderApplicationForm } from '@/features/providers/components/provider-application-form'
-import { getOwnProviderProfile } from '@/features/providers/server/providers'
+import { getOwnContactPhone, getOwnProviderProfile } from '@/features/providers/server/providers'
 import { requireUser } from '@/lib/auth/session'
 
 export const metadata: Metadata = { title: 'Offer your services' }
 
 export default async function ProviderApplyPage() {
   const { user } = await requireUser()
-  const [provider, areas] = await Promise.all([getOwnProviderProfile(user.id), listActiveAreas()])
+  const [provider, areas, phone] = await Promise.all([
+    getOwnProviderProfile(user.id),
+    listActiveAreas(),
+    getOwnContactPhone(user.id),
+  ])
 
   const initial = provider
     ? {
         headline: provider.headline,
         bio: provider.bio ?? '',
         baseLocationId: provider.base_location_id,
+        phone: phone ? formatNigerianPhone(phone) : '',
       }
     : undefined
 

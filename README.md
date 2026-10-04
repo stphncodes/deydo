@@ -20,13 +20,9 @@ npm run env:local      # writes .env.local from the local stack
 npm run dev            # http://localhost:3000
 ```
 
-Sign in locally with a test phone number: `0800 000 0900` to `0800 000 0903` (new users) or a fixture number below, with the code `123456`. Other numbers send a real code through the Send SMS hook, which prints it in the `npm run dev` terminal.
+Sign in with any email address. Locally the 6-digit code arrives in Mailpit, not your real inbox.
 
-Local Studio runs at http://127.0.0.1:54323. Emails (sign-in codes) arrive in Mailpit at http://127.0.0.1:54324. Fixture users (local only): admin `0800 000 0001`, customers `0800 000 0101` and `0800 000 0102`, providers `0800 000 0201` to `0800 000 0206` (all use the code `123456`).
-
-### Troubleshooting
-
-- **Real phone numbers time out locally (`hook_timeout`)**: the Supabase containers cannot reach `npm run dev` on port 3000 through your firewall. On Linux with ufw: `sudo ufw allow in from 172.16.0.0/12 to any port 3000 proto tcp`. Test numbers do not need this.
+Local Studio runs at http://127.0.0.1:54323. Emails (sign-in codes) arrive in Mailpit at http://127.0.0.1:54324. Fixture users (local only): `admin@deydo.test`, customers `chidi@deydo.test` and `amina@deydo.test`, providers `musa@`, `ngozi@`, `tunde@`, `emeka@`, `david@` and `halima@deydo.test`.
 
 ## Working without Docker (current setup)
 
@@ -38,7 +34,7 @@ cp .env.hosted.local .env.local   # or fill in .env.local from .env.example with
 npm run dev
 ```
 
-- Sign in with your email (6-digit code). Phone sign-in needs an SMS vendor, which is not chosen yet.
+- Sign in with your email (6-digit code). Sign-in is email only (ADR-015).
 - `npm run check:quick` runs lint, types, style rules and unit tests. Database tests (pgTAP) and the E2E journeys that create users need Docker, so CI runs them on every pull request.
 - `npm run test:e2e` runs the read-only E2E tests against the hosted data; journeys tagged `@writes` are skipped automatically.
 - New migrations: see "Without Docker" in [`docs/runbooks/migrations.md`](docs/runbooks/migrations.md). Never `db push` from a feature branch.

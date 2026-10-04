@@ -46,7 +46,7 @@ export default async function AdminProvidersPage({ searchParams }: PageProps<'/a
                 <p className="mt-1 text-xs text-ink-subtle">
                   {provider.area ?? 'No area'} · Applied{' '}
                   {new Date(provider.createdAt).toLocaleDateString('en-NG')} ·{' '}
-                  {provider.phoneVerified ? 'Phone verified' : 'Phone not verified'}
+                  {provider.hasPhone ? 'Phone on file' : 'No phone yet'}
                 </p>
               </Link>
             </li>
