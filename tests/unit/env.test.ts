@@ -52,7 +52,7 @@ describe('server env', () => {
     )
     expect(env).toEqual({
       SUPABASE_SECRET_KEY: 'sb_secret_0123456789abcdef',
-      CRON_SECRET: undefined,
+      SMS_PROVIDER: 'disabled',
     })
   })
 })

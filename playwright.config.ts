@@ -10,6 +10,10 @@ const useLocalServer = !process.env.PLAYWRIGHT_BASE_URL
 
 export default defineConfig({
   testDir: './tests/e2e',
+  globalSetup: './tests/e2e/support/global-setup.ts',
+  // Journeys that create data never run against the shared hosted database
+  // (ADR-014); preview runs set PLAYWRIGHT_BASE_URL.
+  grepInvert: process.env.PLAYWRIGHT_BASE_URL ? /@writes/ : undefined,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,

@@ -234,7 +234,7 @@ max_frequency = "1s"
 # Number of characters used in the email OTP.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+otp_expiry = 600
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
@@ -245,6 +245,16 @@ otp_expiry = 3600
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
+
+# Sign-in emails carry a 6-digit code instead of a link: on phones a link
+# often opens in a different browser from the installed app.
+[auth.email.template.magic_link]
+subject = "Your DeyDo sign-in code"
+content_path = "./supabase/templates/sign-in-code.html"
+
+[auth.email.template.confirmation]
+subject = "Your DeyDo sign-in code"
+content_path = "./supabase/templates/sign-in-code.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
@@ -259,7 +269,7 @@ otp_expiry = 3600
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
@@ -267,9 +277,22 @@ template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 
-# Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
+# Fixed OTPs for local development and E2E tests only (never on the hosted
+# project). 2348000000xxx numbers match supabase/seed/dev-fixtures.sql.
+[auth.sms.test_otp]
+2348000000001 = "123456"
+2348000000101 = "123456"
+2348000000102 = "123456"
+2348000000201 = "123456"
+2348000000202 = "123456"
+2348000000203 = "123456"
+2348000000204 = "123456"
+2348000000205 = "123456"
+2348000000206 = "123456"
+2348000000900 = "123456"
+2348000000901 = "123456"
+2348000000902 = "123456"
+2348000000903 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -284,17 +307,27 @@ max_frequency = "5s"
 # uri = "pg-functions://postgres/auth/before-user-created-hook"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-# [auth.hook.custom_access_token]
-# enabled = true
-# uri = "pg-functions://<database>/<schema>/<hook_name>"
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
+# SMS goes through our own route handler and services/sms adapter (ADR-008).
+# The secret is a LOCAL DEVELOPMENT value only; the hosted project uses its own
+# secret, set in the dashboard and in SEND_SMS_HOOK_SECRET on Vercel.
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:3000/api/auth/hooks/send-sms"
+secrets = "v1,whsec_ZGV5ZG8tbG9jYWwtZGV2LW9ubHktc2VuZC1zbXMtaG9vay1zZWNyZXQ="
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# LOCAL ONLY: the CLI turns phone login off unless a built-in provider is
+# enabled, even though the send_sms hook above delivers every SMS. These are
+# placeholders, never used to send anything. No real credentials here.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
-# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+enabled = true
+account_sid = "AC00000000000000000000000000000000"
+message_service_sid = "MG00000000000000000000000000000000"
+auth_token = "placeholder-unused-because-send-sms-hook-is-enabled"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]
