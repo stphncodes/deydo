@@ -182,6 +182,35 @@ export type Database = {
           },
         ]
       }
+      profile_contacts: {
+        Row: {
+          created_at: string
+          phone: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          phone: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          phone?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'profile_contacts_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: true
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_path: string | null
