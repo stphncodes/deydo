@@ -32,20 +32,25 @@ as $$
 declare
   v_parent_type text;
   v_parent_country char(2);
+  v_expected text;
 begin
   if new.parent_id is null then
     return new;
+  end if;
+
+  if new.type = 'state' then
+    v_expected := 'country';
+  elsif new.type = 'city' then
+    v_expected := 'state';
+  elsif new.type = 'area' then
+    v_expected := 'city';
   end if;
 
   select type, country_code into v_parent_type, v_parent_country
   from public.locations
   where id = new.parent_id;
 
-  if v_parent_type is distinct from case new.type
-      when 'state' then 'country'
-      when 'city' then 'state'
-      when 'area' then 'city'
-    end then
+  if v_parent_type is distinct from v_expected then
     raise exception 'A % cannot sit under a %', new.type, coalesce(v_parent_type, 'missing parent')
       using errcode = 'check_violation';
   end if;
