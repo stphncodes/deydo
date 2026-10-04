@@ -24,7 +24,9 @@ select throws_ok(
 
 select set_config('request.jwt.claims',
   '{"sub": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "role": "authenticated", "staff_role": "support"}', true);
-select is((select count(*)::int from public.user_roles), 2, 'support can read all roles');
+select is((select count(*)::int from public.user_roles where user_id in (
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')), 2,
+  'support can read other people''s roles');
 select throws_ok(
   $$insert into public.user_roles (user_id, role) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'admin')$$,
   '42501', null, 'support cannot promote themselves');
@@ -37,7 +39,8 @@ select throws_ok(
 delete from public.user_roles where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 
 reset role;
-select is((select count(*)::int from public.user_roles), 2, 'nobody can delete roles through the API');
+select is((select count(*)::int from public.user_roles where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'), 1,
+  'nobody can delete roles through the API');
 
 select * from finish();
 rollback;

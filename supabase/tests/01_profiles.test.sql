@@ -54,7 +54,7 @@ select lives_ok(
   'a user can edit their own name and handle');
 update public.profiles set full_name = 'Hacked' where id = '22222222-2222-4222-8222-222222222222';
 select throws_ok(
-  $$update public.profiles set status = 'active' where id = '11111111-1111-4111-8111-111111111111'$$,
+  $$update public.profiles set status = 'deleted' where id = '11111111-1111-4111-8111-111111111111'$$,
   '42501', 'You cannot change this field', 'a user cannot change their own status');
 select throws_ok(
   $$update public.profiles set phone_verified = false where id = '11111111-1111-4111-8111-111111111111'$$,

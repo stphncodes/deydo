@@ -47,6 +47,7 @@ select is(
   1, 'an admin category edit writes an audit row with before and after');
 
 -- Changes without a user token (migrations, secret key) are not row-audited.
+select set_config('request.jwt.claims', '', true);
 update public.categories set sort_order = 30 where slug = 'plumbing';
 select is((select count(*)::int from public.audit_logs where action = 'categories.update'), 1,
   'system changes do not create row audit entries');
