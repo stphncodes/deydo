@@ -28,6 +28,23 @@ Local Studio runs at http://127.0.0.1:54323. Emails (sign-in codes) arrive in Ma
 
 - **Real phone numbers time out locally (`hook_timeout`)**: the Supabase containers cannot reach `npm run dev` on port 3000 through your firewall. On Linux with ufw: `sudo ufw allow in from 172.16.0.0/12 to any port 3000 proto tcp`. Test numbers do not need this.
 
+## Working without Docker (current setup)
+
+Local development can point at the hosted Supabase project instead of the Docker stack. **That project is also production (ADR-014): anything you create locally is real data.**
+
+```bash
+npm ci
+cp .env.hosted.local .env.local   # or fill in .env.local from .env.example with the hosted keys
+npm run dev
+```
+
+- Sign in with your email (6-digit code). Phone sign-in needs an SMS vendor, which is not chosen yet.
+- `npm run check:quick` runs lint, types, style rules and unit tests. Database tests (pgTAP) and the E2E journeys that create users need Docker, so CI runs them on every pull request.
+- `npm run test:e2e` runs the read-only E2E tests against the hosted data; journeys tagged `@writes` are skipped automatically.
+- New migrations: see "Without Docker" in [`docs/runbooks/migrations.md`](docs/runbooks/migrations.md). Never `db push` from a feature branch.
+
+To go back to Docker: start Docker, `npm run db:start`, then `npm run env:local`.
+
 ## Everyday commands
 
 | Command                             | What it does                                                            |

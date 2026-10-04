@@ -58,12 +58,22 @@ jobs:
         run: npm run db:test
 
       - name: Generated types are committed and current
+        id: types
         run: |
           npm run db:types
           git diff --exit-code types/database.ts || {
-            echo "::error::types/database.ts is stale. Run npm run db:types and commit it."
+            echo "::error::types/database.ts is stale. Download the database-types artifact from this run (or run npm run db:types with Docker) and commit it."
             exit 1
           }
+
+      # Without Docker locally, this is how a new migration's types are made:
+      # CI builds the schema from scratch and hands back the generated file.
+      - uses: actions/upload-artifact@v7
+        if: failure() && steps.types.outcome == 'failure'
+        with:
+          name: database-types
+          path: types/database.ts
+          retention-days: 7
 
       - name: Wedge city seed is idempotent
         run: |

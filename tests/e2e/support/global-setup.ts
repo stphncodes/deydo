@@ -21,7 +21,7 @@ function readLocalEnv(): Record<string, string> {
 
 /**
  * Deletes the E2E users so sign-up journeys start fresh. Local stack only:
- * it refuses to touch any hosted project (ADR-014).
+ * it never touches a hosted project (ADR-014).
  */
 export default async function globalSetup() {
   if (process.env.PLAYWRIGHT_BASE_URL) return
@@ -29,9 +29,8 @@ export default async function globalSetup() {
   const env = { ...readLocalEnv(), ...process.env }
   const url = env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const key = env.SUPABASE_SECRET_KEY ?? ''
-  if (!/^http:\/\/(127\.0\.0\.1|localhost):54321$/.test(url) || !key) {
-    throw new Error('E2E global setup only runs against the local Supabase stack.')
-  }
+  // Hosted project (no Docker): @writes journeys are skipped, nothing to reset.
+  if (!/^http:\/\/(127\.0\.0\.1|localhost):54321$/.test(url) || !key) return
 
   const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
   const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 })

@@ -20,7 +20,8 @@
     "db:types": "supabase gen types typescript --local --schema public > types/database.ts && prettier --write types/database.ts --ignore-path /dev/null --log-level warn",
     "db:test": "supabase test db",
     "check": "npm run lint && npm run typecheck && npm run check:style && npm test && npm run db:test",
-    "env:local": "node scripts/local-env.mjs"
+    "env:local": "node scripts/local-env.mjs",
+    "check:quick": "npm run lint && npm run typecheck && npm run check:style && npm test"
   },
   "dependencies": {
     "@sentry/nextjs": "^11.4.0",
