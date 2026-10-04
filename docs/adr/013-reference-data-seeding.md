@@ -1,6 +1,6 @@
 # ADR-013: How reference data reaches each environment
 
-- Status: Accepted
+- Status: Accepted. The staging fixture step is superseded by [ADR-014](014-shared-supabase-project.md) while one project serves staging and production.
 - Date: 2026-10-04
 
 ## Context
