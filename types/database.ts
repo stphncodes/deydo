@@ -229,6 +229,66 @@ export type Database = {
           },
         ]
       }
+      provider_profiles: {
+        Row: {
+          approved_at: string | null
+          base_location_id: string
+          bio: string | null
+          created_at: string
+          headline: string
+          id: string
+          is_available: boolean
+          status: string
+          status_reason: string | null
+          updated_at: string
+          verification_level: number
+          work_modes: string[]
+        }
+        Insert: {
+          approved_at?: string | null
+          base_location_id: string
+          bio?: string | null
+          created_at?: string
+          headline: string
+          id: string
+          is_available?: boolean
+          status?: string
+          status_reason?: string | null
+          updated_at?: string
+          verification_level?: number
+          work_modes?: string[]
+        }
+        Update: {
+          approved_at?: string | null
+          base_location_id?: string
+          bio?: string | null
+          created_at?: string
+          headline?: string
+          id?: string
+          is_available?: boolean
+          status?: string
+          status_reason?: string | null
+          updated_at?: string
+          verification_level?: number
+          work_modes?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'provider_profiles_base_location_id_fkey'
+            columns: ['base_location_id']
+            isOneToOne: false
+            referencedRelation: 'locations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'provider_profiles_id_fkey'
+            columns: ['id']
+            isOneToOne: true
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -268,11 +328,63 @@ export type Database = {
           },
         ]
       }
+      verification_records: {
+        Row: {
+          check_type: string
+          created_at: string
+          evidence_path: string | null
+          id: string
+          notes: string | null
+          performed_by: string | null
+          provider_id: string
+          result: string
+          vendor_reference: string | null
+        }
+        Insert: {
+          check_type: string
+          created_at?: string
+          evidence_path?: string | null
+          id?: string
+          notes?: string | null
+          performed_by?: string | null
+          provider_id: string
+          result: string
+          vendor_reference?: string | null
+        }
+        Update: {
+          check_type?: string
+          created_at?: string
+          evidence_path?: string | null
+          id?: string
+          notes?: string | null
+          performed_by?: string | null
+          provider_id?: string
+          result?: string
+          vendor_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'verification_records_performed_by_fkey'
+            columns: ['performed_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'verification_records_provider_id_fkey'
+            columns: ['provider_id']
+            isOneToOne: false
+            referencedRelation: 'provider_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       is_active_user: { Args: Record<PropertyKey, never>; Returns: boolean }
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
       is_leaf_category: { Args: { p_category_id: string }; Returns: boolean }
@@ -289,6 +401,35 @@ export type Database = {
         Returns: number
       }
       required_fields_valid: { Args: { p_fields: Json }; Returns: boolean }
+      review_provider: {
+        Args: {
+          p_checks?: Json
+          p_decision: string
+          p_provider_id: string
+          p_reason?: string
+          p_verification_level?: number
+        }
+        Returns: {
+          approved_at: string | null
+          base_location_id: string
+          bio: string | null
+          created_at: string
+          headline: string
+          id: string
+          is_available: boolean
+          status: string
+          status_reason: string | null
+          updated_at: string
+          verification_level: number
+          work_modes: string[]
+        }
+        SetofOptions: {
+          from: '*'
+          to: 'provider_profiles'
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       staff_role: { Args: Record<PropertyKey, never>; Returns: string }
     }
     Enums: {
